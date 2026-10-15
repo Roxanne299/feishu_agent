@@ -1,0 +1,19 @@
+server:
+  port: ${PORT:8080}
+
+agent:
+  # Any "<provider>:<model>" id agentscope understands; DashScope needs DASHSCOPE_API_KEY.
+  model: ${AGENT_MODEL:dashscope:qwen-plus}
+  sys-prompt: ${AGENT_SYS_PROMPT:你是一个飞书里的智能助手，用简洁的中文回答问题。}
+
+feishu:
+  app-id: ${FEISHU_APP_ID:}
+  app-secret: ${FEISHU_APP_SECRET:}
+  # Optional, from 飞书开放平台 -> 事件与回调 -> 加密策略
+  encrypt-key: ${FEISHU_ENCRYPT_KEY:}
+  verification-token: ${FEISHU_VERIFICATION_TOKEN:}
+
+logging:
+  level:
+    io.agentscope: INFO
+    com.example.feishuagent: INFO
