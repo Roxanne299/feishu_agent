@@ -6,6 +6,13 @@ agent:
   model: ${AGENT_MODEL:dashscope:qwen-plus}
   sys-prompt: ${AGENT_SYS_PROMPT:你是一个飞书里的智能助手，用简洁的中文回答问题。}
 
+# OpenAI-compatible endpoint. When base-url is set it takes precedence over agent.model.
+# MiniMax: LLM_BASE_URL=https://api.minimaxi.com/v1 (国内) or https://api.minimax.io/v1 (海外)
+llm:
+  base-url: ${LLM_BASE_URL:}
+  api-key: ${LLM_API_KEY:}
+  model: ${LLM_MODEL:}
+
 feishu:
   app-id: ${FEISHU_APP_ID:}
   app-secret: ${FEISHU_APP_SECRET:}

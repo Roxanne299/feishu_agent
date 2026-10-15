@@ -1,6 +1,8 @@
 package com.example.feishuagent;
 
+import io.agentscope.core.model.Model;
 import io.agentscope.extensions.channel.feishu.FeishuChannel;
+import io.agentscope.extensions.model.openai.OpenAIChatModel;
 import io.agentscope.harness.agent.HarnessAgent;
 import io.agentscope.harness.agent.gateway.GatewayBootstrap;
 import io.agentscope.harness.agent.gateway.channel.ChannelConfig;
@@ -23,16 +25,37 @@ public class AgentConfig {
 
     @Bean
     public HarnessAgent mainAgent(
-            @Value("${agent.model}") String model, @Value("${agent.sys-prompt}") String sysPrompt)
+            @Value("${agent.model}") String modelId,
+            @Value("${agent.sys-prompt}") String sysPrompt,
+            @Value("${llm.base-url}") String baseUrl,
+            @Value("${llm.api-key}") String apiKey,
+            @Value("${llm.model}") String modelName)
             throws IOException {
         Path workspace = Files.createDirectories(Paths.get(".agentscope/workspace"));
-        return HarnessAgent.builder()
-                .name("feishu-assistant")
-                .agentId(AGENT_ID)
-                .sysPrompt(sysPrompt)
-                .model(model)
-                .workspace(workspace)
-                .build();
+        HarnessAgent.Builder builder =
+                HarnessAgent.builder()
+                        .name("feishu-assistant")
+                        .agentId(AGENT_ID)
+                        .sysPrompt(sysPrompt)
+                        .workspace(workspace);
+        if (hasText(baseUrl)) {
+            // OpenAI-compatible endpoint, e.g. MiniMax
+            if (!hasText(apiKey) || !hasText(modelName)) {
+                throw new IllegalStateException(
+                        "LLM_BASE_URL is set, so LLM_API_KEY and LLM_MODEL are required");
+            }
+            Model model =
+                    OpenAIChatModel.builder()
+                            .baseUrl(baseUrl)
+                            .apiKey(apiKey)
+                            .modelName(modelName)
+                            .build();
+            builder.model(model);
+        } else {
+            // e.g. "dashscope:qwen-plus", API key read from the provider's env var
+            builder.model(modelId);
+        }
+        return builder.build();
     }
 
     @Bean

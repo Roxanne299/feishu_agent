@@ -1,6 +1,6 @@
 # feishu_agent
 
-一个最简的 [AgentScope Java](https://github.com/agentscope-ai/agentscope-java)（2.0.4）Agent，接入飞书机器人：在飞书里给机器人发消息 → Agent（通义千问）生成回复 → 回到飞书。
+一个最简的 [AgentScope Java](https://github.com/agentscope-ai/agentscope-java)（2.0.4）Agent，接入飞书机器人：在飞书里给机器人发消息 → Agent（MiniMax / 通义千问 等）生成回复 → 回到飞书。
 
 ## 结构
 
@@ -11,7 +11,7 @@
                                           ▼ (后台异步)
                                    FeishuChannel.dispatch()  ← agentscope-extensions-channel-feishu
                                           ▼
-                              GatewayBootstrap → HarnessAgent (dashscope:qwen-plus)
+                              GatewayBootstrap → HarnessAgent (MiniMax-M3 / qwen-plus ...)
                                           ▼
                      FeishuChannel 用 tenant_access_token 调 /open-apis/im/v1/messages 回复
 ```
@@ -45,17 +45,36 @@
 
 需要 JDK 17+、Maven。
 
+### 模型配置（二选一）
+
+**A. MiniMax 或其他 OpenAI 兼容接口**（DeepSeek、Kimi、硅基流动等同理，换 base url 和模型名即可）：
+
 ```bash
-export DASHSCOPE_API_KEY=sk-xxx              # 阿里云百炼 API Key
+export LLM_BASE_URL=https://api.minimaxi.com/v1   # 国内站；海外站用 https://api.minimax.io/v1
+export LLM_API_KEY=你的MiniMax_API_Key
+export LLM_MODEL=MiniMax-M3                       # 以 MiniMax 控制台里可用的模型名为准
+```
+
+**B. AgentScope 内置厂商**（不设置 `LLM_BASE_URL` 时生效）：
+
+```bash
+export DASHSCOPE_API_KEY=sk-xxx                   # 阿里云百炼
+export AGENT_MODEL=dashscope:qwen-plus            # 默认值
+```
+
+### 飞书配置并启动
+
+```bash
 export FEISHU_APP_ID=cli_xxx
 export FEISHU_APP_SECRET=xxx
 export FEISHU_VERIFICATION_TOKEN=xxx         # 强烈建议配置，用于校验请求确实来自飞书
 # export FEISHU_ENCRYPT_KEY=xxx              # 飞书后台开启了加密才需要
-# export AGENT_MODEL=dashscope:qwen-max      # 可选，默认 dashscope:qwen-plus
 
 mvn spring-boot:run
 # 或：mvn package && java -jar target/feishu-agent-0.1.0-SNAPSHOT.jar
 ```
+
+启动后日志里出现 `PRE_REASONING | model=MiniMax-M3` 即说明用的是你配置的模型。
 
 ## 3. 验证
 

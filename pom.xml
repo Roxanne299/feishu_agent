@@ -44,6 +44,12 @@
             <artifactId>agentscope-extensions-model-dashscope</artifactId>
             <version>${agentscope.version}</version>
         </dependency>
+        <!-- Model provider: any OpenAI-compatible API (MiniMax, DeepSeek, ...) -->
+        <dependency>
+            <groupId>io.agentscope</groupId>
+            <artifactId>agentscope-extensions-model-openai</artifactId>
+            <version>${agentscope.version}</version>
+        </dependency>
         <!-- Feishu channel: event parsing, decryption, tenant_access_token, reply sending -->
         <dependency>
             <groupId>io.agentscope</groupId>
