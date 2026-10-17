@@ -1,26 +1,28 @@
+# 仓库里只放非敏感的默认值。
+# 密钥走环境变量（见文件末尾清单），或项目根目录的 config/application.yml（已 gitignore）。
+
 server:
   port: ${PORT:8080}
-
-agent:
-  # Any "<provider>:<model>" id agentscope understands; DashScope needs DASHSCOPE_API_KEY.
-  model: ${AGENT_MODEL:dashscope:qwen-plus}
-  sys-prompt: ${AGENT_SYS_PROMPT:你是一个飞书里的智能助手，用简洁的中文回答问题。}
-
-# OpenAI-compatible endpoint. When base-url is set it takes precedence over agent.model.
-# MiniMax: LLM_BASE_URL=https://api.minimaxi.com/v1 (国内) or https://api.minimax.io/v1 (海外)
-llm:
-  base-url: ${LLM_BASE_URL:}
-  api-key: ${LLM_API_KEY:}
-  model: ${LLM_MODEL:}
-
-feishu:
-  app-id: ${FEISHU_APP_ID:}
-  app-secret: ${FEISHU_APP_SECRET:}
-  # Optional, from 飞书开放平台 -> 事件与回调 -> 加密策略
-  encrypt-key: ${FEISHU_ENCRYPT_KEY:}
-  verification-token: ${FEISHU_VERIFICATION_TOKEN:}
 
 logging:
   level:
     io.agentscope: INFO
     com.example.feishuagent: INFO
+
+# 下面这些键不写在仓库里，由环境变量注入（Spring Boot relaxed binding 自动映射）：
+#
+#   模型（二选一）
+#     LLM_BASE_URL              -> llm.base-url     OpenAI 兼容端点，配了它就优先
+#     LLM_API_KEY               -> llm.api-key
+#     LLM_MODEL                 -> llm.model
+#     AGENT_MODEL               -> agent.model      如 dashscope:qwen-plus，不配 LLM_BASE_URL 时生效
+#
+#   飞书
+#     FEISHU_APP_ID             -> feishu.app-id
+#     FEISHU_APP_SECRET         -> feishu.app-secret
+#     FEISHU_VERIFICATION_TOKEN -> feishu.verification-token
+#     FEISHU_ENCRYPT_KEY        -> feishu.encrypt-key   飞书后台开了加密才需要
+#
+#   可选
+#     PORT                      -> server.port
+#     AGENT_SYS_PROMPT          -> agent.sys-prompt  不配则用 AgentProperties 里的默认值

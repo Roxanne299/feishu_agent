@@ -12,9 +12,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.StringUtils;
 
 /** Wires one HarnessAgent and the Feishu channel into an AgentScope gateway. */
 @Configuration
@@ -24,38 +24,38 @@ public class AgentConfig {
     public static final String FEISHU_CHANNEL_ID = "feishu";
 
     @Bean
-    public HarnessAgent mainAgent(
-            @Value("${agent.model}") String modelId,
-            @Value("${agent.sys-prompt}") String sysPrompt,
-            @Value("${llm.base-url}") String baseUrl,
-            @Value("${llm.api-key}") String apiKey,
-            @Value("${llm.model}") String modelName)
-            throws IOException {
+    public HarnessAgent mainAgent(AgentProperties agent, LlmProperties llm) throws IOException {
         Path workspace = Files.createDirectories(Paths.get(".agentscope/workspace"));
         HarnessAgent.Builder builder =
                 HarnessAgent.builder()
                         .name("feishu-assistant")
                         .agentId(AGENT_ID)
-                        .sysPrompt(sysPrompt)
+                        .sysPrompt(agent.sysPrompt())
                         .workspace(workspace);
-        if (hasText(baseUrl)) {
+        if (llm.isConfigured()) {
             // OpenAI-compatible endpoint, e.g. MiniMax
-            if (!hasText(apiKey) || !hasText(modelName)) {
-                throw new IllegalStateException(
-                        "LLM_BASE_URL is set, so LLM_API_KEY and LLM_MODEL are required");
-            }
-            Model model =
-                    OpenAIChatModel.builder()
-                            .baseUrl(baseUrl)
-                            .apiKey(apiKey)
-                            .modelName(modelName)
-                            .build();
-            builder.model(model);
-        } else {
+            builder.model(openAiCompatibleModel(llm));
+        } else if (StringUtils.hasText(agent.model())) {
             // e.g. "dashscope:qwen-plus", API key read from the provider's env var
-            builder.model(modelId);
+            builder.model(agent.model());
+        } else {
+            throw new IllegalStateException(
+                    "No model configured: set llm.base-url + llm.api-key + llm.model,"
+                            + " or agent.model");
         }
         return builder.build();
+    }
+
+    private static Model openAiCompatibleModel(LlmProperties llm) {
+        if (!llm.isComplete()) {
+            throw new IllegalStateException(
+                    "llm.base-url is set, so llm.api-key and llm.model are required");
+        }
+        return OpenAIChatModel.builder()
+                .baseUrl(llm.baseUrl())
+                .apiKey(llm.apiKey())
+                .modelName(llm.model())
+                .build();
     }
 
     @Bean
@@ -63,10 +63,10 @@ public class AgentConfig {
         Map<String, Object> props = new HashMap<>();
         props.put("appId", feishu.appId());
         props.put("appSecret", feishu.appSecret());
-        if (hasText(feishu.encryptKey())) {
+        if (StringUtils.hasText(feishu.encryptKey())) {
             props.put("encryptKey", feishu.encryptKey());
         }
-        if (hasText(feishu.verificationToken())) {
+        if (StringUtils.hasText(feishu.verificationToken())) {
             props.put("verificationToken", feishu.verificationToken());
         }
         return FeishuChannel.fromProperties(
@@ -81,9 +81,5 @@ public class AgentConfig {
                 .channel(feishuChannel)
                 .build()
                 .start();
-    }
-
-    static boolean hasText(String s) {
-        return s != null && !s.isBlank();
     }
 }

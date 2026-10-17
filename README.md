@@ -43,7 +43,8 @@
 
 ## 2. 运行
 
-需要 JDK 17+、Maven。Mac 上可以 `brew install openjdk@21 maven`。
+需要 JDK 17+、**Maven 3.6.3 以上**（pom 里的 `maven-compiler-plugin:3.13.0` 有这个下限）。
+Mac 上可以 `brew install openjdk@21 maven`。`mvn -v` 如果低于 3.6.3，换新版或直接用 IDEA 内置的 Maven。
 
 ### 方式一：配置文件（推荐本地使用）
 
@@ -72,6 +73,15 @@ export LLM_MODEL=MiniMax-M3                       # 以 MiniMax 控制台里可�
 ```bash
 export DASHSCOPE_API_KEY=sk-xxx                   # 阿里云百炼
 export AGENT_MODEL=dashscope:qwen-plus            # 默认值
+```
+
+#### 用 .env 收口（推荐）
+
+逐条 `export` 很烦，可以把所有变量写进项目根目录的 `.env`（已在 `.gitignore` 里）：
+
+```bash
+set -a; source .env; set +a
+mvn spring-boot:run
 ```
 
 #### 飞书配置并启动

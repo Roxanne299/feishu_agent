@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -57,7 +58,7 @@ public class FeishuWebhookController {
     public FeishuWebhookController(FeishuChannel channel, FeishuProperties props) {
         this.channel = channel;
         this.props = props;
-        this.crypto = AgentConfig.hasText(props.encryptKey()) ? new FeishuCrypto(props.encryptKey()) : null;
+        this.crypto = StringUtils.hasText(props.encryptKey()) ? new FeishuCrypto(props.encryptKey()) : null;
     }
 
     @PostMapping(value = "/feishu/callback", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -131,7 +132,7 @@ public class FeishuWebhookController {
     /** No token configured means "skip the check"; otherwise it must match exactly. */
     private boolean tokenMatches(String received) {
         String expected = props.verificationToken();
-        if (!AgentConfig.hasText(expected)) {
+        if (!StringUtils.hasText(expected)) {
             return true;
         }
         return MessageDigest.isEqual(
