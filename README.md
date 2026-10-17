@@ -43,15 +43,17 @@
 
 ## 2. 运行
 
-需要 JDK 17+、**Maven 3.6.3 以上**（pom 里的 `maven-compiler-plugin:3.13.0` 有这个下限）。
-Mac 上可以 `brew install openjdk@21 maven`。`mvn -v` 如果低于 3.6.3，换新版或直接用 IDEA 内置的 Maven。
+需要 JDK 17+。构建用仓库自带的 **Maven Wrapper**（`./mvnw`，已钉在 3.9.9），
+不依赖本机 `mvn` 的版本——pom 里的 `maven-compiler-plugin:3.13.0` 要求 Maven ≥ 3.6.3，
+系统里装的是更老的版本也不影响。IDEA 里可在 Settings → Build Tools → Maven
+把 Maven home path 选成 Wrapper（该设置是项目级的，不影响其他项目）。
 
 ### 方式一：配置文件（推荐本地使用）
 
 ```bash
 cp config/application.yml.example config/application.yml
 # 编辑 config/application.yml，填入 MiniMax key 和飞书 App ID / Secret / Verification Token
-mvn spring-boot:run
+./mvnw spring-boot:run
 ```
 
 `config/application.yml` 已在 `.gitignore` 里，不会被提交。需要在项目根目录下启动，Spring Boot 才会读取它。
@@ -81,7 +83,7 @@ export AGENT_MODEL=dashscope:qwen-plus            # 默认值
 
 ```bash
 set -a; source .env; set +a
-mvn spring-boot:run
+./mvnw spring-boot:run
 ```
 
 #### 飞书配置并启动
@@ -92,8 +94,8 @@ export FEISHU_APP_SECRET=xxx
 export FEISHU_VERIFICATION_TOKEN=xxx         # 强烈建议配置，用于校验请求确实来自飞书
 # export FEISHU_ENCRYPT_KEY=xxx              # 飞书后台开启了加密才需要
 
-mvn spring-boot:run
-# 或：mvn package && java -jar target/feishu-agent-0.1.0-SNAPSHOT.jar
+./mvnw spring-boot:run
+# 或：./mvnw package && java -jar target/feishu-agent-0.1.0-SNAPSHOT.jar
 ```
 
 启动后日志里出现 `PRE_REASONING | model=MiniMax-M3` 即说明用的是你配置的模型。
