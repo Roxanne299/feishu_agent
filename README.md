@@ -43,9 +43,21 @@
 
 ## 2. 运行
 
-需要 JDK 17+、Maven。
+需要 JDK 17+、Maven。Mac 上可以 `brew install openjdk@21 maven`。
 
-### 模型配置（二选一）
+### 方式一：配置文件（推荐本地使用）
+
+```bash
+cp config/application.yml.example config/application.yml
+# 编辑 config/application.yml，填入 MiniMax key 和飞书 App ID / Secret / Verification Token
+mvn spring-boot:run
+```
+
+`config/application.yml` 已在 `.gitignore` 里，不会被提交。需要在项目根目录下启动，Spring Boot 才会读取它。
+
+### 方式二：环境变量
+
+#### 模型配置（二选一）
 
 **A. MiniMax 或其他 OpenAI 兼容接口**（DeepSeek、Kimi、硅基流动等同理，换 base url 和模型名即可）：
 
@@ -62,7 +74,7 @@ export DASHSCOPE_API_KEY=sk-xxx                   # 阿里云百炼
 export AGENT_MODEL=dashscope:qwen-plus            # 默认值
 ```
 
-### 飞书配置并启动
+#### 飞书配置并启动
 
 ```bash
 export FEISHU_APP_ID=cli_xxx
