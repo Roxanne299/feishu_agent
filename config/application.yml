@@ -1,0 +1,23 @@
+# 本地配置：复制一份去掉 .example 后缀再填值
+#   cp config/application.yml.example config/application.yml
+# config/application.yml 已被 .gitignore 忽略，不会把 key 提交上去。
+# 从项目根目录启动（mvn spring-boot:run 或 java -jar target/xxx.jar）时 Spring Boot 会自动加载它。
+
+# ---- 模型：MiniMax（OpenAI 兼容接口）----
+llm:
+  base-url: https://api.minimaxi.com/v1   # 国内站；海外账号用 https://api.minimax.io/v1
+  api-key: 你的MiniMax_API_Key
+  model: MiniMax-M3                       # 以 MiniMax 控制台里可用的模型名为准
+
+# ---- 飞书应用：开放平台 -> 凭证与基础信息 / 事件与回调 -> 加密策略 ----
+feishu:
+  app-id: cli_xxxxxxxx
+  app-secret: xxxxxxxx
+  verification-token: xxxxxxxx
+  encrypt-key:                            # 飞书后台没开加密就留空
+
+# ---- 可选 ----
+# server:
+#   port: 8080
+# agent:
+#   sys-prompt: 你是一个飞书里的智能助手，用简洁的中文回答问题。
