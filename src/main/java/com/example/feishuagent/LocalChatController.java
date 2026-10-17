@@ -26,6 +26,7 @@ public class LocalChatController {
                 .send(SendOptions.userId(user), q)
                 .map(Msg::getTextContent)
                 .defaultIfEmpty("")
+                .map(ReplySanitizer::stripThinking)
                 .map(text -> Map.of("reply", text));
     }
 }

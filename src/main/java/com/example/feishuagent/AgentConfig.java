@@ -1,17 +1,15 @@
 package com.example.feishuagent;
 
 import io.agentscope.core.model.Model;
-import io.agentscope.extensions.channel.feishu.FeishuChannel;
 import io.agentscope.extensions.model.openai.OpenAIChatModel;
 import io.agentscope.harness.agent.HarnessAgent;
 import io.agentscope.harness.agent.gateway.GatewayBootstrap;
 import io.agentscope.harness.agent.gateway.channel.ChannelConfig;
+import io.agentscope.harness.agent.gateway.channel.DmScope;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
@@ -59,22 +57,29 @@ public class AgentConfig {
     }
 
     @Bean
-    public FeishuChannel feishuChannel(FeishuProperties feishu) {
-        Map<String, Object> props = new HashMap<>();
-        props.put("appId", feishu.appId());
-        props.put("appSecret", feishu.appSecret());
-        if (StringUtils.hasText(feishu.encryptKey())) {
-            props.put("encryptKey", feishu.encryptKey());
-        }
-        if (StringUtils.hasText(feishu.verificationToken())) {
-            props.put("verificationToken", feishu.verificationToken());
-        }
-        return FeishuChannel.fromProperties(
-                FEISHU_CHANNEL_ID, ChannelConfig.of(FEISHU_CHANNEL_ID, AGENT_ID), props);
+    public FeishuCardSender feishuCardSender(FeishuProperties feishu) {
+        return FeishuCardSender.create(feishu);
+    }
+
+    @Bean
+    public FeishuCardChannel feishuChannel(FeishuCardSender cardSender) {
+        return new FeishuCardChannel(feishuChannelConfig(), cardSender);
+    }
+
+    /**
+     * {@link DmScope#PER_PEER} gives every direct chat its own session. The default, {@code MAIN},
+     * maps all direct chats to one session key, so everyone talking to the bot privately would
+     * share a single conversation history.
+     */
+    static ChannelConfig feishuChannelConfig() {
+        return ChannelConfig.builder(FEISHU_CHANNEL_ID)
+                .defaultAgentId(AGENT_ID)
+                .dmScope(DmScope.PER_PEER)
+                .build();
     }
 
     @Bean(destroyMethod = "stop")
-    public GatewayBootstrap gateway(HarnessAgent mainAgent, FeishuChannel feishuChannel) {
+    public GatewayBootstrap gateway(HarnessAgent mainAgent, FeishuCardChannel feishuChannel) {
         return GatewayBootstrap.builder()
                 .agent(AGENT_ID, mainAgent)
                 .mainAgent(AGENT_ID)

@@ -2,7 +2,6 @@ package com.example.feishuagent;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.agentscope.extensions.channel.feishu.FeishuChannel;
 import io.agentscope.extensions.channel.feishu.FeishuCrypto;
 import io.agentscope.extensions.channel.feishu.FeishuInboundMapper;
 import io.agentscope.harness.agent.gateway.channel.InboundMessage;
@@ -32,7 +31,7 @@ import reactor.core.scheduler.Schedulers;
  * has replied. Feishu expects a 200 within 3 seconds and otherwise re-delivers the event, which
  * makes the bot answer the same message several times. This controller acks immediately, drops
  * redeliveries by {@code event_id}, and runs the agent in the background; the reply itself is
- * still sent by {@link FeishuChannel#dispatch}.
+ * sent by {@link FeishuCardChannel#dispatch}.
  */
 @RestController
 public class FeishuWebhookController {
@@ -41,7 +40,7 @@ public class FeishuWebhookController {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final int SEEN_EVENTS_CAPACITY = 1000;
 
-    private final FeishuChannel channel;
+    private final FeishuCardChannel channel;
     private final FeishuProperties props;
     private final FeishuCrypto crypto;
     private final FeishuInboundMapper mapper = new FeishuInboundMapper(AgentConfig.FEISHU_CHANNEL_ID);
@@ -55,7 +54,7 @@ public class FeishuWebhookController {
                                 }
                             }));
 
-    public FeishuWebhookController(FeishuChannel channel, FeishuProperties props) {
+    public FeishuWebhookController(FeishuCardChannel channel, FeishuProperties props) {
         this.channel = channel;
         this.props = props;
         this.crypto = StringUtils.hasText(props.encryptKey()) ? new FeishuCrypto(props.encryptKey()) : null;
@@ -124,7 +123,10 @@ public class FeishuWebhookController {
         channel.dispatch(in)
                 .subscribeOn(Schedulers.boundedElastic())
                 .subscribe(
-                        reply -> log.info("Agent replied: {}", reply.getTextContent()),
+                        reply ->
+                                log.info(
+                                        "Agent replied: {}",
+                                        ReplySanitizer.stripThinking(reply.getTextContent())),
                         err -> log.error("Agent run failed for event {}", eventId, err));
         return ResponseEntity.ok("{}");
     }
